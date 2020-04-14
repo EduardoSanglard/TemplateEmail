@@ -1,0 +1,34 @@
+{
+  "name": "TemplateEmail",
+  "description": "Template de processo com captura de e-mail",
+  "main": "Main.xaml",
+  "dependencies": {
+    "UiPath.AmazonWebServices.Activities": "1.0.0",
+    "UiPath.Excel.Activities": "[2.7.2]",
+    "UiPath.Mail.Activities": "[1.7.2]",
+    "UiPath.System.Activities": "[19.10.1]",
+    "UiPath.UIAutomation.Activities": "[19.11.2]"
+  },
+  "schemaVersion": "3.2",
+  "studioVersion": "19.4.4.0",
+  "projectVersion": "1.0.1",
+  "runtimeOptions": {
+    "exceptionHandlerWorkflow": "GlobalHandler.xaml",
+    "autoDispose": false,
+    "isPausable": true,
+    "excludedLoggedData": [
+      "Private:*",
+      "*password*"
+    ]
+  },
+  "projectType": "Workflow",
+  "libraryOptions": {
+    "includeOriginalXaml": false,
+    "privateWorkflows": []
+  },
+  "arguments": {
+    "input": [],
+    "output": []
+  },
+  "webServices": []
+}
