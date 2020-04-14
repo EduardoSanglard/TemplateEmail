@@ -70,12 +70,10 @@
       <Variable x:TypeArguments="x:String" Default="[in_data.ToString(&quot;MM&quot;)]" Name="mesAtual" />
       <Variable x:TypeArguments="x:String" Default="[in_data.ToString(&quot;yyyy&quot;)]" Name="anoAtual" />
       <Variable x:TypeArguments="x:String" Default="[Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)]" Name="userPath" />
-      <Variable x:TypeArguments="x:String" Name="emailRemetente" />
       <Variable x:TypeArguments="x:String" Default="[in_data.ToString(&quot;dd&quot;)]" Name="diaAtual" />
       <Variable x:TypeArguments="x:String" Name="dataBase" />
       <Variable x:TypeArguments="s:DateTime" Default="[in_data]" Name="data" />
       <Variable x:TypeArguments="scg:List(snm:MailMessage)" Name="mensagens" />
-      <Variable x:TypeArguments="ui:GenericValue" Name="novaPasta" />
       <Variable x:TypeArguments="snm:MailMessage" Name="mail" />
       <Variable x:TypeArguments="scg:IEnumerable(x:String)" Name="anexos" />
       <Variable x:TypeArguments="x:String" Name="anexoDesejado" />
@@ -84,6 +82,9 @@
       <Variable x:TypeArguments="ss:SecureString" Name="aws_secrets_key" />
       <Variable x:TypeArguments="x:String" Name="aws_acess_key" />
       <Variable x:TypeArguments="x:String" Name="aws_secrets_key_string" />
+      <Variable x:TypeArguments="x:String" Name="PastaInput" />
+      <Variable x:TypeArguments="x:String" Name="PastaOutput" />
+      <Variable x:TypeArguments="s:String[]" Name="remetentes" />
     </Flowchart.Variables>
     <sap:WorkflowViewStateService.ViewState>
       <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -144,7 +145,7 @@
                         <InArgument x:TypeArguments="scg:List(snm:MailMessage)" xml:space="preserve">[(
 From email In mensagens
 Where System.Text.RegularExpressions.Regex.IsMatch(email.Subject,Config("Assunto").ToString) And 
-email.Sender.Address.Equals(emailRemetente)
+remetentes.Contains(email.Sender.Address)
 Select email
 ).ToList]</InArgument>
                       </ui:AssignOperation.Value>
@@ -166,23 +167,40 @@ Select email
                 </sap:WorkflowViewStateService.ViewState>
               </ui:MultipleAssign>
               <FlowStep.Next>
-                <FlowDecision x:Name="__ReferenceID1" Condition="[not mail is nothing]" DisplayName="Sem Email" sap:VirtualizedContainerService.HintSize="70,87" sap2010:WorkflowViewState.IdRef="FlowDecision_2">
+                <FlowDecision x:Name="__ReferenceID1" Condition="[mail is nothing]" DisplayName="Sem Email" sap:VirtualizedContainerService.HintSize="70,87" sap2010:WorkflowViewState.IdRef="FlowDecision_2">
                   <sap:WorkflowViewStateService.ViewState>
                     <scg:Dictionary x:TypeArguments="x:String, x:Object">
                       <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                       <av:Point x:Key="ShapeLocation">325,436.5</av:Point>
                       <av:Size x:Key="ShapeSize">70,87</av:Size>
-                      <av:PointCollection x:Key="FalseConnector">395,480 470,480 470,554.5</av:PointCollection>
-                      <av:PointCollection x:Key="TrueConnector">325,480 240,480 240,554.5</av:PointCollection>
+                      <av:PointCollection x:Key="FalseConnector">395,480 480,480 480,554.5</av:PointCollection>
+                      <av:PointCollection x:Key="TrueConnector">325,480 250,480 250,554.5</av:PointCollection>
                     </scg:Dictionary>
                   </sap:WorkflowViewStateService.ViewState>
                   <FlowDecision.True>
+                    <FlowStep x:Name="__ReferenceID5">
+                      <sap:WorkflowViewStateService.ViewState>
+                        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                          <av:Point x:Key="ShapeLocation">150,554.5</av:Point>
+                          <av:Size x:Key="ShapeSize">200,51</av:Size>
+                        </scg:Dictionary>
+                      </sap:WorkflowViewStateService.ViewState>
+                      <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="LogMessage_2" Level="Warn" Message="[&quot;E-mail não encontrado&quot;]">
+                        <sap:WorkflowViewStateService.ViewState>
+                          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                          </scg:Dictionary>
+                        </sap:WorkflowViewStateService.ViewState>
+                      </ui:LogMessage>
+                    </FlowStep>
+                  </FlowDecision.True>
+                  <FlowDecision.False>
                     <FlowStep x:Name="__ReferenceID8">
                       <sap:WorkflowViewStateService.ViewState>
                         <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                          <av:Point x:Key="ShapeLocation">140,554.5</av:Point>
+                          <av:Point x:Key="ShapeLocation">380,554.5</av:Point>
                           <av:Size x:Key="ShapeSize">200,51</av:Size>
-                          <av:PointCollection x:Key="ConnectorLocation">240,605.5 240,646.5</av:PointCollection>
+                          <av:PointCollection x:Key="ConnectorLocation">480,605.5 480,646.5</av:PointCollection>
                         </scg:Dictionary>
                       </sap:WorkflowViewStateService.ViewState>
                       <Sequence DisplayName="Procura por anexo" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="Sequence_13">
@@ -191,43 +209,7 @@ Select email
                             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                           </scg:Dictionary>
                         </sap:WorkflowViewStateService.ViewState>
-                        <ui:MultipleAssign DisplayName="Multiple Assign" sap:VirtualizedContainerService.HintSize="242,51" sap2010:WorkflowViewState.IdRef="MultipleAssign_18">
-                          <ui:MultipleAssign.AssignOperations>
-                            <scg:List x:TypeArguments="ui:AssignOperation" Capacity="4">
-                              <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_86">
-                                <ui:AssignOperation.To>
-                                  <OutArgument x:TypeArguments="ui:GenericValue">[novaPasta]</OutArgument>
-                                </ui:AssignOperation.To>
-                                <ui:AssignOperation.Value>
-                                  <InArgument x:TypeArguments="ui:GenericValue">[Config("CaminhoInputs").ToString+novaPasta]</InArgument>
-                                </ui:AssignOperation.Value>
-                              </ui:AssignOperation>
-                              <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_87">
-                                <ui:AssignOperation.To>
-                                  <OutArgument x:TypeArguments="ui:GenericValue">[novaPasta]</OutArgument>
-                                </ui:AssignOperation.To>
-                                <ui:AssignOperation.Value>
-                                  <InArgument x:TypeArguments="ui:GenericValue">[userPath+novaPasta+prefixoData]</InArgument>
-                                </ui:AssignOperation.Value>
-                              </ui:AssignOperation>
-                            </scg:List>
-                          </ui:MultipleAssign.AssignOperations>
-                          <sap:WorkflowViewStateService.ViewState>
-                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                              <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-                              <x:Boolean x:Key="IsPinned">False</x:Boolean>
-                            </scg:Dictionary>
-                          </sap:WorkflowViewStateService.ViewState>
-                        </ui:MultipleAssign>
-                        <ui:CreateDirectory ContinueOnError="{x:Null}" DisplayName="Create Directory" sap:VirtualizedContainerService.HintSize="242,51" sap2010:WorkflowViewState.IdRef="CreateDirectory_2" Path="[novaPasta]">
-                          <sap:WorkflowViewStateService.ViewState>
-                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                              <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-                              <x:Boolean x:Key="IsPinned">False</x:Boolean>
-                            </scg:Dictionary>
-                          </sap:WorkflowViewStateService.ViewState>
-                        </ui:CreateDirectory>
-                        <ui:SaveMailAttachments Attachments="[anexos]" DisplayName="Salva anexos do Email" Filter="[Config(&quot;Anexo&quot;).ToString]" FolderPath="[novaPasta]" sap:VirtualizedContainerService.HintSize="242,51" sap2010:WorkflowViewState.IdRef="SaveMailAttachments_2" Message="[mail]">
+                        <ui:SaveMailAttachments Attachments="[anexos]" DisplayName="Salva anexos do Email" Filter="[Config(&quot;Anexo&quot;).ToString]" FolderPath="[PastaInput]" sap:VirtualizedContainerService.HintSize="242,51" sap2010:WorkflowViewState.IdRef="SaveMailAttachments_2" Message="[mail]">
                           <sap:WorkflowViewStateService.ViewState>
                             <scg:Dictionary x:TypeArguments="x:String, x:Object">
                               <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -250,21 +232,39 @@ Select email
                         </Assign>
                       </Sequence>
                       <FlowStep.Next>
-                        <FlowDecision x:Name="__ReferenceID2" Condition="[not anexoDesejado is nothing]" DisplayName="Sem Anexo" sap:VirtualizedContainerService.HintSize="70,87" sap2010:WorkflowViewState.IdRef="FlowDecision_1">
+                        <FlowDecision x:Name="__ReferenceID2" Condition="[anexoDesejado is nothing]" DisplayName="Sem Anexo" sap:VirtualizedContainerService.HintSize="70,87" sap2010:WorkflowViewState.IdRef="FlowDecision_1">
                           <sap:WorkflowViewStateService.ViewState>
                             <scg:Dictionary x:TypeArguments="x:String, x:Object">
                               <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-                              <av:Point x:Key="ShapeLocation">205,646.5</av:Point>
+                              <av:Point x:Key="ShapeLocation">445,646.5</av:Point>
                               <av:Size x:Key="ShapeSize">70,87</av:Size>
-                              <av:PointCollection x:Key="TrueConnector">205,690 140,690 140,754.5</av:PointCollection>
-                              <av:PointCollection x:Key="FalseConnector">275,690 350,690 350,754.5</av:PointCollection>
+                              <av:PointCollection x:Key="FalseConnector">515,690 590,690 590,754.5</av:PointCollection>
+                              <av:PointCollection x:Key="TrueConnector">445,690 370,690 370,754.5</av:PointCollection>
                             </scg:Dictionary>
                           </sap:WorkflowViewStateService.ViewState>
                           <FlowDecision.True>
+                            <FlowStep x:Name="__ReferenceID9">
+                              <sap:WorkflowViewStateService.ViewState>
+                                <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                  <av:Point x:Key="ShapeLocation">270,754.5</av:Point>
+                                  <av:Size x:Key="ShapeSize">200,51</av:Size>
+                                </scg:Dictionary>
+                              </sap:WorkflowViewStateService.ViewState>
+                              <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="LogMessage_6" Level="Warn" Message="[&quot;E-mail veio sem o anexo esperado&quot;]">
+                                <sap:WorkflowViewStateService.ViewState>
+                                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                    <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                                    <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                  </scg:Dictionary>
+                                </sap:WorkflowViewStateService.ViewState>
+                              </ui:LogMessage>
+                            </FlowStep>
+                          </FlowDecision.True>
+                          <FlowDecision.False>
                             <FlowStep x:Name="__ReferenceID3">
                               <sap:WorkflowViewStateService.ViewState>
                                 <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                  <av:Point x:Key="ShapeLocation">40,754.5</av:Point>
+                                  <av:Point x:Key="ShapeLocation">490,754.5</av:Point>
                                   <av:Size x:Key="ShapeSize">200,51</av:Size>
                                 </scg:Dictionary>
                               </sap:WorkflowViewStateService.ViewState>
@@ -279,7 +279,7 @@ Select email
                                     <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                                   </scg:Dictionary>
                                 </sap:WorkflowViewStateService.ViewState>
-                                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Processar dados" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_3" UnSafe="False" WorkflowFileName="Process.xaml">
+                                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Processar dados" sap:VirtualizedContainerService.HintSize="318,51" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_3" UnSafe="False" WorkflowFileName="Process.xaml">
                                   <ui:InvokeWorkflowFile.Arguments>
                                     <InArgument x:TypeArguments="x:String" x:Key="In_Input">[anexoDesejado]</InArgument>
                                     <OutArgument x:TypeArguments="sd:DataTable" x:Key="Out_Dados">[dataOut]</OutArgument>
@@ -291,7 +291,7 @@ Select email
                                     </scg:Dictionary>
                                   </sap:WorkflowViewStateService.ViewState>
                                 </ui:InvokeWorkflowFile>
-                                <ui:MultipleAssign DisplayName="Multiple Assign" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="MultipleAssign_17">
+                                <ui:MultipleAssign DisplayName="Multiple Assign" sap:VirtualizedContainerService.HintSize="318,160" sap2010:WorkflowViewState.IdRef="MultipleAssign_17">
                                   <ui:MultipleAssign.AssignOperations>
                                     <scg:List x:TypeArguments="ui:AssignOperation" Capacity="4">
                                       <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_81">
@@ -299,7 +299,7 @@ Select email
                                           <OutArgument x:TypeArguments="x:String">[outputPath]</OutArgument>
                                         </ui:AssignOperation.To>
                                         <ui:AssignOperation.Value>
-                                          <InArgument x:TypeArguments="x:String">[userPath+Config("CaminhoOutput").ToString]</InArgument>
+                                          <InArgument x:TypeArguments="x:String">[userPath+Config("CaminhoOutputs").ToString]</InArgument>
                                         </ui:AssignOperation.Value>
                                       </ui:AssignOperation>
                                       <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_82">
@@ -322,20 +322,20 @@ Select email
                                   </ui:MultipleAssign.AssignOperations>
                                   <sap:WorkflowViewStateService.ViewState>
                                     <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                      <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                                       <x:Boolean x:Key="IsPinned">False</x:Boolean>
                                     </scg:Dictionary>
                                   </sap:WorkflowViewStateService.ViewState>
                                 </ui:MultipleAssign>
-                                <ui:WriteCsvFile AddHeaders="True" DataTable="[dataOut]" Delimitator="Pipe" DisplayName="Escreve arquivo Write CSV" Encoding="UTF-8" FilePath="[outputPath]" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="WriteCsvFile_2">
+                                <ui:WriteCsvFile AddHeaders="True" DataTable="[dataOut]" Delimitator="Pipe" DisplayName="Escreve arquivo Write CSV" Encoding="UTF-8" FilePath="[outputPath]" sap:VirtualizedContainerService.HintSize="318,152" sap2010:WorkflowViewState.IdRef="WriteCsvFile_2">
                                   <sap:WorkflowViewStateService.ViewState>
                                     <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                      <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                                       <x:Boolean x:Key="IsPinned">False</x:Boolean>
                                     </scg:Dictionary>
                                   </sap:WorkflowViewStateService.ViewState>
                                 </ui:WriteCsvFile>
-                                <uaa:AWSScope AccessKeyId="[aws_acess_key]" DisplayName="AWS - Enviar arquivo Salvo" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="AWSScope_1" Region="us-east-1" SecretAccessKey="[aws_secrets_key]">
+                                <uaa:AWSScope AccessKeyId="[aws_acess_key]" DisplayName="AWS - Enviar arquivo Salvo" sap:VirtualizedContainerService.HintSize="318,51" sap2010:WorkflowViewState.IdRef="AWSScope_1" Region="us-east-1" SecretAccessKey="[aws_secrets_key]">
                                   <uaa:AWSScope.Body>
                                     <ActivityAction x:TypeArguments="uac:AWSCmd">
                                       <ActivityAction.Argument>
@@ -350,8 +350,8 @@ Select email
                                             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
                                           </scg:Dictionary>
                                         </sap:WorkflowViewStateService.ViewState>
-                                        <uaasb:AWSGetBucket BucketDetails="{x:Null}" Bucket="[bucket]" BucketName="[Config(&quot;BucketName&quot;).ToString]" DisplayName="Get Bucket" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AWSGetBucket_1" IncludeDetails="False" />
-                                        <uaaso:AWSUploadSingleObject ContentType="{x:Null}" EncryptionKey="{x:Null}" Object="{x:Null}" Permissions="{x:Null}" Tags="{x:Null}" Timeout="{x:Null}" Bucket="[bucket]" DisplayName="Upload Object from File" Encryption="None" FileToUpload="[outputPath]" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AWSUploadSingleObject_1" ObjectKeyName="[Config(&quot;&quot;).ToString+outputName]" StorageClass="Standard" />
+                                        <uaasb:AWSGetBucket BucketDetails="{x:Null}" Bucket="[bucket]" BucketName="[Config(&quot;AWSBucketName&quot;).ToString]" DisplayName="Get Bucket" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AWSGetBucket_1" IncludeDetails="False" />
+                                        <uaaso:AWSUploadSingleObject ContentType="{x:Null}" EncryptionKey="{x:Null}" Object="{x:Null}" Permissions="{x:Null}" Tags="{x:Null}" Timeout="{x:Null}" Bucket="[bucket]" DisplayName="Upload Object from File" Encryption="None" FileToUpload="[outputPath]" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AWSUploadSingleObject_1" ObjectKeyName="[Config(&quot;AWSPath&quot;).ToString+outputName]" StorageClass="Standard" />
                                       </Sequence>
                                     </ActivityAction>
                                   </uaa:AWSScope.Body>
@@ -364,58 +364,9 @@ Select email
                                 </uaa:AWSScope>
                               </Sequence>
                             </FlowStep>
-                          </FlowDecision.True>
-                          <FlowDecision.False>
-                            <FlowStep x:Name="__ReferenceID9">
-                              <sap:WorkflowViewStateService.ViewState>
-                                <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                  <av:Point x:Key="ShapeLocation">250,754.5</av:Point>
-                                  <av:Size x:Key="ShapeSize">200,51</av:Size>
-                                </scg:Dictionary>
-                              </sap:WorkflowViewStateService.ViewState>
-                              <Sequence DisplayName="Anexo não encontrado" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="Sequence_14">
-                                <sap:WorkflowViewStateService.ViewState>
-                                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                    <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-                                  </scg:Dictionary>
-                                </sap:WorkflowViewStateService.ViewState>
-                                <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="LogMessage_5" Level="Warn" Message="[&quot;E-mail veio sem o anexo esperado&quot;]">
-                                  <sap:WorkflowViewStateService.ViewState>
-                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                      <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-                                      <x:Boolean x:Key="IsPinned">False</x:Boolean>
-                                    </scg:Dictionary>
-                                  </sap:WorkflowViewStateService.ViewState>
-                                </ui:LogMessage>
-                                <ui:Delete ContinueOnError="{x:Null}" DisplayName="Deleta pasta criada" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="Delete_2" Path="[novaPasta]">
-                                  <sap:WorkflowViewStateService.ViewState>
-                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-                                    </scg:Dictionary>
-                                  </sap:WorkflowViewStateService.ViewState>
-                                </ui:Delete>
-                              </Sequence>
-                            </FlowStep>
                           </FlowDecision.False>
                         </FlowDecision>
                       </FlowStep.Next>
-                    </FlowStep>
-                  </FlowDecision.True>
-                  <FlowDecision.False>
-                    <FlowStep x:Name="__ReferenceID5">
-                      <sap:WorkflowViewStateService.ViewState>
-                        <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                          <av:Point x:Key="ShapeLocation">370,554.5</av:Point>
-                          <av:Size x:Key="ShapeSize">200,51</av:Size>
-                        </scg:Dictionary>
-                      </sap:WorkflowViewStateService.ViewState>
-                      <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="LogMessage_2" Level="Warn" Message="[&quot;E-mail não encontrado&quot;]">
-                        <sap:WorkflowViewStateService.ViewState>
-                          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-                          </scg:Dictionary>
-                        </sap:WorkflowViewStateService.ViewState>
-                      </ui:LogMessage>
                     </FlowStep>
                   </FlowDecision.False>
                 </FlowDecision>
@@ -457,7 +408,7 @@ Select email
           <av:PointCollection x:Key="ConnectorLocation">510,165.5 510,199</av:PointCollection>
         </scg:Dictionary>
       </sap:WorkflowViewStateService.ViewState>
-      <Sequence DisplayName="Inicialização" sap:VirtualizedContainerService.HintSize="222,328" sap2010:WorkflowViewState.IdRef="Sequence_12">
+      <Sequence DisplayName="Inicialização" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="Sequence_12">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -476,14 +427,14 @@ Select email
             </scg:Dictionary>
           </sap:WorkflowViewStateService.ViewState>
         </ui:InvokeWorkflowFile>
-        <ui:GetRobotCredential TimeoutMS="{x:Null}" AssetName="[Config(&quot;awsLogin&quot;).ToString]" DisplayName="Get Credential AWS" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="GetRobotCredential_2" Password="[aws_secrets_key]" Username="[aws_acess_key]">
+        <ui:GetRobotCredential TimeoutMS="{x:Null}" AssetName="[Config(&quot;AWSLogin&quot;).ToString]" DisplayName="Get Credential AWS" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="GetRobotCredential_2" Password="[aws_secrets_key]" Username="[aws_acess_key]">
           <sap:WorkflowViewStateService.ViewState>
             <scg:Dictionary x:TypeArguments="x:String, x:Object">
               <x:Boolean x:Key="IsExpanded">True</x:Boolean>
             </scg:Dictionary>
           </sap:WorkflowViewStateService.ViewState>
         </ui:GetRobotCredential>
-        <ui:MultipleAssign DisplayName="Designa valores iniciais" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="MultipleAssign_19">
+        <ui:MultipleAssign DisplayName="Seta valores iniciais" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="MultipleAssign_19">
           <ui:MultipleAssign.AssignOperations>
             <scg:List x:TypeArguments="ui:AssignOperation" Capacity="16">
               <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_93">
@@ -499,7 +450,7 @@ Select email
                   <OutArgument x:TypeArguments="x:String">[prefixoData]</OutArgument>
                 </ui:AssignOperation.To>
                 <ui:AssignOperation.Value>
-                  <InArgument x:TypeArguments="x:String">[anoAtual+"_"+mesAtual+"_"+diaAtual]</InArgument>
+                  <InArgument x:TypeArguments="x:String">[dataBase.Replace("-","_")]</InArgument>
                 </ui:AssignOperation.Value>
               </ui:AssignOperation>
               <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_96">
@@ -508,6 +459,14 @@ Select email
                 </ui:AssignOperation.To>
                 <ui:AssignOperation.Value>
                   <InArgument x:TypeArguments="x:String" xml:space="preserve">["[ReceivedTime] &gt;'"+data.AddDays(-1).ToString("dd/MM/yyyy")+" 23:59' AND  [ReceivedTime] &lt;'"+data.ToString("dd/MM/yyyy")+" 23:59' "]</InArgument>
+                </ui:AssignOperation.Value>
+              </ui:AssignOperation>
+              <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_101">
+                <ui:AssignOperation.To>
+                  <OutArgument x:TypeArguments="s:String[]">[remetentes]</OutArgument>
+                </ui:AssignOperation.To>
+                <ui:AssignOperation.Value>
+                  <InArgument x:TypeArguments="s:String[]">[Split(Config("EmailRemetentes").ToString,";")]</InArgument>
                 </ui:AssignOperation.Value>
               </ui:AssignOperation>
             </scg:List>
@@ -519,6 +478,58 @@ Select email
             </scg:Dictionary>
           </sap:WorkflowViewStateService.ViewState>
         </ui:MultipleAssign>
+        <Sequence DisplayName="Cria pastas de Input e Output" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="Sequence_17">
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+              <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+          <ui:MultipleAssign DisplayName="Define nome de pastas" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="MultipleAssign_21">
+            <ui:MultipleAssign.AssignOperations>
+              <scg:List x:TypeArguments="ui:AssignOperation" Capacity="4">
+                <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_99">
+                  <ui:AssignOperation.To>
+                    <OutArgument x:TypeArguments="x:String">[PastaInput]</OutArgument>
+                  </ui:AssignOperation.To>
+                  <ui:AssignOperation.Value>
+                    <InArgument x:TypeArguments="x:String">[userPath+Config("CaminhoInputs").ToString]</InArgument>
+                  </ui:AssignOperation.Value>
+                </ui:AssignOperation>
+                <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_100">
+                  <ui:AssignOperation.To>
+                    <OutArgument x:TypeArguments="x:String">[PastaOutput]</OutArgument>
+                  </ui:AssignOperation.To>
+                  <ui:AssignOperation.Value>
+                    <InArgument x:TypeArguments="x:String">[userPath+Config("CaminhoOutputs").ToString]</InArgument>
+                  </ui:AssignOperation.Value>
+                </ui:AssignOperation>
+              </scg:List>
+            </ui:MultipleAssign.AssignOperations>
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:MultipleAssign>
+          <ui:CreateDirectory ContinueOnError="{x:Null}" DisplayName="Create Directory Inputs" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="CreateDirectory_4" Path="[PastaInput]">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:CreateDirectory>
+          <ui:CreateDirectory ContinueOnError="{x:Null}" DisplayName="Create Directory Outputs" sap:VirtualizedContainerService.HintSize="200,51" sap2010:WorkflowViewState.IdRef="CreateDirectory_5" Path="[PastaOutput]">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:CreateDirectory>
+        </Sequence>
       </Sequence>
       <FlowStep.Next>
         <x:Reference>__ReferenceID7</x:Reference>
